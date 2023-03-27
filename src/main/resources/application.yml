@@ -5,6 +5,9 @@ spring :
     url : jdbc:h2:mem:testUser
     username : sa
     password : 1234
+  profiles :
+    active :
+      - UserJpa
   h2 :
     console :
       enabled : true

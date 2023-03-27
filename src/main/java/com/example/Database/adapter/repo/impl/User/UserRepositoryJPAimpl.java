@@ -1,13 +1,11 @@
 package com.example.Database.adapter.repo.impl.User;
 
-import com.example.Database.adapter.model.Address;
 import com.example.Database.adapter.repo.UserRepository;
 import com.example.Database.adapter.model.User;
-import com.example.Database.adapter.repo.impl.Address.AddressEntity;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
+@Profile("UserJpa")
 public class UserRepositoryJPAimpl implements UserRepository {
     private final UserRepositoryJPASpringImpl userRepositoryJPASpring;
 
@@ -25,8 +24,6 @@ public class UserRepositoryJPAimpl implements UserRepository {
     @Override
     public long save(User user) {
         UserEntity userEntity = toUserEntity(user);
-        System.out.println(userEntity.getAccounts()+"\n");
-        System.out.println(userEntity.getAddress());
         UserEntity savedUser = userRepositoryJPASpring.save(userEntity);
         return savedUser.getId();
     }
@@ -40,22 +37,16 @@ public class UserRepositoryJPAimpl implements UserRepository {
     public List<User> findAll() {
         return userRepositoryJPASpring.findAll().stream().map(toModel()).collect(Collectors.toList());
     }
-
-    @Override
-    public Page<User> loadUser(Pageable pageable) {
-        return userRepositoryJPASpring.findAll(pageable).map(toModel());
-    }
-
-    @Override
-    public Page<User> searchUserByName(String name, Pageable pageable) {
-        return userRepositoryJPASpring
-                .findByName(name, pageable)
-                .map(toModel());
-    }
-
     @Override
     public void removeUser(Long id) {
          userRepositoryJPASpring.deleteById(id);
+    }
+
+    @Override
+    public User update(User user) {
+        UserEntity userEntity = toUserEntity(user);
+        UserEntity savedUser = userRepositoryJPASpring.save(userEntity);
+        return user;
     }
 
     private UserEntity toUserEntity(User user) {
@@ -67,8 +58,6 @@ public class UserRepositoryJPAimpl implements UserRepository {
                 .email(user.getEmail())
                 .name(user.getName())
                 .id(user.getId())
-                .address(user.getAddress())
-                .accounts(user.getAccountEntities())
                 .build();
     }
 

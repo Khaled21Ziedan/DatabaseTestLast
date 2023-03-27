@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 @RestController
@@ -22,20 +24,22 @@ public class UserController {
     public Long savingUser(@RequestBody UserDTO userDTO){
         return userService.registerUser(toUser(userDTO));
     }
+    @PutMapping
+    public UserDTO updatingUser(@RequestBody UserDTO userDTO){
+        userService.update(toUser(userDTO));
+        return userDTO;
+    }
+    @GetMapping("/allUsers")
+    public List<User> allUsers(){
+        return userService.findAll();
+    }
     @GetMapping("/{id}")
     public UserDTO loadingUser(@PathVariable Long id){
         return userService.loadUserById(id).map(toDto()).orElseThrow(()->new RuntimeException("user not found"));
     }
-    @GetMapping("/search")
-    public Page<UserDTO> loading(int pageNo,int pageSize){
-        return userService.loadAll(PageRequest.of(pageNo, pageSize)).map(toDto());
-    }
-    @GetMapping("/searchByName")
-    public Page<UserDTO> loadingByName(@RequestParam String name,int pageNo,int pageSize){
-        return userService.loadAllByName(name, PageRequest.of(pageNo, pageSize)).map(toDto());
-    }
     @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable Long id){
+        userService.loadUserById(id).map(toDto()).orElseThrow(()->new RuntimeException("user not found"));
         userService.remove(id);
     }
 
