@@ -28,7 +28,6 @@ public class UserService {
     }
 
     public Optional<User> loadUserById(Long id) {
-
         return userRepository.getById(id);
     }
 

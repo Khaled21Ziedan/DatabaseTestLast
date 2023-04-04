@@ -8,14 +8,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,10 +30,20 @@ public class UserServiceTest {
     @Test
     public void registerUser_Test(){
         Mockito.when(userRepository.save(user1)).thenReturn(1l);
+        Long id = userService.registerUser(user1);
+        assertEquals(id, user1.getId());
     }
     @Test
     public void loadUserById_Test(){
         Mockito.when(userRepository.getById(1l)).thenReturn(Optional.ofNullable(user1));
+        Optional<User> user = userService.loadUserById(1l);
+        assertEquals(user.get().getName(), "khaled");
+    }
+    @Test
+    public void loadUserByIdNotFound_Test(){
+        Mockito.when(userRepository.getById(10l)).thenReturn(Optional.empty());
+        Optional<User> user = userService.loadUserById(10l);
+        assertTrue(user.isEmpty());
     }
     @Test
     public void removeUser_Test(){

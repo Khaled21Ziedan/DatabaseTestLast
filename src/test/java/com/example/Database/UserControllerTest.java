@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -29,10 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
+    @MockBean // dummy bean
+    private UserService userService;
     ObjectMapper objectMapper = new ObjectMapper();
     ObjectWriter objectWriter = objectMapper.writer();
-    @MockBean
-    private UserService userService;
     User user = User.builder()
             .id(1l)
             .name("ahmad")
@@ -48,7 +47,7 @@ public class UserControllerTest {
         Mockito.when(userService.findAll()).thenReturn(users);
 
         mockMvc
-                .perform(MockMvcRequestBuilders.get("/users/allUsers")
+                .perform(MockMvcRequestBuilders.get("/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
@@ -66,7 +65,14 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$", notNullValue()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name", is("ahmad")));
     }
-
+    @Test
+    public void getUserByIdTest_failed() throws Exception {
+        Mockito.when(userService.loadUserById(2l)).thenReturn(Optional.empty());
+        mockMvc
+                .perform(MockMvcRequestBuilders.get("/users/2")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
     @Test
     public void saveUserTest() throws Exception {
         User user = User.builder()
@@ -98,7 +104,7 @@ public class UserControllerTest {
                 .id(4l)
                 .name("ahmad")
                 .email("a@123")
-                .age(19)
+                .age(23)
                 .active(true)
                 .city("amman")
                 .build();
@@ -118,8 +124,7 @@ public class UserControllerTest {
 
     }
     @Test
-    public void removeUserTest() throws Exception {
-
+    public void removeUserByIdTest() throws Exception {
         Mockito.when(userService.loadUserById(user.getId())).thenReturn(Optional.ofNullable(user));
 
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.delete("/users/delete/1")
@@ -128,6 +133,16 @@ public class UserControllerTest {
         mockMvc
                 .perform(mockRequest)
                 .andExpect(status().isOk());
+    }
+    @Test
+    public void removeUserByIdNotFoundTest() throws Exception {
+        Mockito.when(userService.loadUserById(120l)).thenReturn(Optional.empty());
 
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.delete("/users/delete/120")
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc
+                .perform(mockRequest)
+                .andExpect(status().isOk());
     }
 }

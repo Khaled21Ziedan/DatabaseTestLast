@@ -39,9 +39,11 @@ public class UserRepositoryJPAimpl implements UserRepository {
     }
     @Override
     public void removeUser(Long id) {
-         userRepositoryJPASpring.deleteById(id);
+        if (userRepositoryJPASpring.findById(id).equals(Optional.empty())){
+            throw new RuntimeException("user not found");
+        }
+        userRepositoryJPASpring.deleteById(id);
     }
-
     @Override
     public User update(User user) {
         UserEntity userEntity = toUserEntity(user);
